@@ -22,6 +22,214 @@ let yacode = new Set(),
     shuju_d = []
 let ur_l = "https://duxinggj.com"
 
+router.post("/get_user_msg", function (req, res, next) {
+    let sd_der = {
+        code: 0,
+        msg: ""
+    }
+    mysql.query('SELECT xiangqing.id,xiangqing.title ,xiangqing.zz_name  FROM user_msg,xiangqing WHERE user_msg.user_id=' + req.body.user_id + ' AND xiangqing.id=user_msg.act_id GROUP BY id').then(function (data) {
+        sd_der.code = 0
+        sd_der.msg = "查询成功"
+        sd_der.data = data
+        res.json(sd_der)
+    }).catch(function (err) {
+        sd_der.code = "-1"
+        sd_der.msg = "查询失败"
+        res.json(sd_der)
+    })
+
+})
+
+router.post("/get_act_msg", function (req, res, next) { //获取活动留言
+    let sd_der = {
+        code: 0,
+        msg: ""
+    }
+    mysql.query('SELECT user_msg.id,user_msg.msg_text,user_info.nickName,user_info.avatarUrl FROM user_msg,user_info WHERE  act_id=' + req.body.act_id + ' AND user_msg.user_id =user_info.id').then(function (data) {
+        sd_der.code = 0
+        sd_der.msg = "查询成功"
+        sd_der.data = data
+        res.json(sd_der)
+    }).catch(function (err) {
+        sd_der.code = "-1"
+        sd_der.msg = "查询失败"
+        res.json(sd_der)
+    })
+})
+
+
+
+router.post("/del_msg", function (req, res, next) { //删除我的留言
+    let sd_der = {
+        code: 0,
+        msg: ""
+    }
+    del('user_msg', req, res)
+})
+
+
+
+router.post("/cx_msg", function (req, res, next) { //查询我的留言
+    let sd_der = {
+        code: 0,
+        msg: ""
+    }
+    mysql.query('SELECT user_msg.id,user_msg.msg_text,user_info.nickName,user_info.avatarUrl FROM user_msg,user_info WHERE user_id=' + req.body.user_id + ' AND act_id=' + req.body.act_id + ' AND user_msg.user_id =user_info.id').then(function (data) {
+        sd_der.code = 0
+        sd_der.msg = "查询成功"
+        sd_der.data = data
+        res.json(sd_der)
+    }).catch(function (err) {
+        sd_der.code = "-1"
+        sd_der.msg = "查询失败"
+        res.json(sd_der)
+    })
+})
+
+router.post("/add_msg", function (req, res, next) { //留言
+    let sd_der = {
+        code: 0,
+        msg: ""
+    }
+    mysql.table('user_msg').add(req.body).then(function (data) {
+        sd_der.code = 0
+        sd_der.msg = "添加成功"
+        sd_der.data = data
+        res.json(sd_der)
+    }).catch(function (err) {
+        sd_der.code = "-1"
+        sd_der.msg = "添加失败"
+        res.json(sd_der)
+    })
+})
+
+router.post("/dianzan_type", function (req, res, next) { //点赞的状态
+    let sd_der = {}
+    mysql.table('user_dz').where(req.body).select().then(function (data) {
+        sd_der.code = "1"
+        sd_der.msg = "获取点赞状态成功!"
+        if (data.length > 0) {
+            sd_der.code = "0"
+        }
+        res.json(sd_der)
+
+    }).catch(function (err) {
+        sd_der.code = "-1"
+        sd_der.msg = "获取点赞状态失败"
+        sd_der.data = err
+        res.json(sd_der)
+    });
+
+})
+
+
+router.post("/dianzan_num", function (req, res, next) {
+    let sd_der = {}
+    mysql.query('SELECT COUNT(*) AS num  FROM user_dz WHERE act_id=' + req.body.act_id).then(function (count) {
+        sd_der.num = count[0].num
+        sd_der.code = "0"
+        sd_der.msg = "获取点赞数量成功!"
+        res.json(sd_der)
+    })
+})
+
+router.post("/dianzan", function (req, res, next) { //点赞活动
+    let sd_df = {}
+    charu('user_dz', {
+        act_id: req.body.act_id,
+        user_id: req.body.user_id
+    }, req, res, function (data) {
+        if (data.type == 'exist') {
+            mysql.table('user_dz').where({
+                id: data.id
+            }).delete().then(function (affectRows) {
+                sd_df.code = "1"
+                sd_df.msg = ''
+                res.json(sd_df)
+            }).catch(function (err) {
+                sd_df.code = "-1"
+                sd_df.msg = ""
+                res.json(sd_df)
+            })
+        }
+
+    })
+
+})
+
+
+
+router.post("/get_sc_my", function (req, res, next) { //我的收藏
+    let sd_der = {
+        code: 0,
+        msg: ""
+    }
+    mysql.query('SELECT xiangqing.id,xiangqing.title ,xiangqing.zz_name  FROM user_sc,xiangqing WHERE user_sc.user_id=' + req.body.user_id + ' AND xiangqing.id=user_sc.act_id').then(function (data) {
+        sd_der.data = data
+        res.json(sd_der)
+    })
+})
+
+
+
+router.post("/shouchang", function (req, res, next) { //收藏活动
+    let sd_df = {}
+    charu('user_sc', {
+        act_id: req.body.act_id,
+        user_id: req.body.user_id
+    }, req, res, function (data) {
+        if (data.type == 'exist') {
+            mysql.table('user_sc').where({
+                id: data.id
+            }).delete().then(function (affectRows) {
+                sd_df.code = "1"
+                sd_df.msg = '取消收藏'
+                res.json(sd_df)
+            }).catch(function (err) {
+                sd_df.code = "-1"
+                sd_df.msg = "取消收藏失败"
+                res.json(sd_df)
+            })
+        }
+
+    })
+
+})
+
+
+
+router.post("/shouchang_type", function (req, res, next) { //收藏的状态
+    let sd_der = {}
+    mysql.table('user_sc').where(req.body).select().then(function (data) {
+        sd_der.code = "1"
+        sd_der.msg = "获取收藏状态成功"
+        if (data.length > 0) {
+            sd_der.code = "0"
+        }
+        res.json(sd_der)
+    }).catch(function (err) {
+        sd_der.code = "-1"
+        sd_der.msg = "获取收藏状态失败"
+        sd_der.data = err
+        res.json(sd_der)
+    });
+
+})
+
+
+
+
+router.post("/get_baoming", function (req, res, next) { //获取报名
+    let sd_der = {
+        code: 0,
+        msg: ""
+    }
+    mysql.query('SELECT xiangqing.id,xiangqing.title ,xiangqing.zz_name  FROM user_act,xiangqing WHERE user_act.user_id=' + req.body.user_id + ' AND xiangqing.id=user_act.act_id').then(function (data) {
+        sd_der.data = data
+        res.json(sd_der)
+    })
+})
+
 router.post("/fasongyz", function (req, res, next) { //发送验证码
     var user_xn = {}
     user_xn.phone = req.body.phone
@@ -81,7 +289,7 @@ router.post("/yanzenma", function (req, res, next) { //绑定
 
 
 //小程序 -首页
-router.get('/get_index', function (req, res, next) {
+router.post('/get_index', function (req, res, next) {
     let sd_der = {
         code: 0,
         msg: ""
@@ -121,7 +329,31 @@ router.post('/get_user', function (req, res, next) {
 })
 //获取用户指定信息
 router.post('/get_user_id', function (req, res, next) {
-    tjcx('user_info', req, res)
+    let sd_der = {
+        code: 0,
+        msg: "",
+        data:{}
+    }
+  
+        mysql.query('SELECT * FROM user_info WHERE id=' + req.body.id).then(function (data) {
+        sd_der.data = data
+        mysql.query('SELECT COUNT(*) AS sc_num FROM user_sc WHERE user_id=' + req.body.id).then(function (count) {
+            sd_der.sc_num = count[0].sc_num
+            mysql.query('SELECT COUNT(*) AS msg_n FROM user_msg WHERE user_id='+ req.body.id +' GROUP BY act_id').then(function (count) {
+                sd_der.msg_n = count[0].msg_n
+                mysql.query('SELECT COUNT(*) AS act_num FROM user_act WHERE user_id=' + req.body.id).then(function (count) {
+                    sd_der.act_num = count[0].act_num
+                      res.json(sd_der)
+                })
+
+            })
+
+        })
+
+    })
+    
+    
+    
 })
 
 
@@ -309,7 +541,7 @@ router.post("/add_xq", function (req, res, next) {
         res.json(sd_der)
     })
 })
-//获取详情
+//获取详情11
 router.post("/get_xq", function (req, res, next) {
     let sd_der = {
         code: 0,
@@ -319,7 +551,14 @@ router.post("/get_xq", function (req, res, next) {
         sd_der.code = 0
         sd_der.msg = "查询成功"
         sd_der.data = data[0]
-        res.json(sd_der)
+        mysql.query('SELECT COUNT(*) AS sc_num  FROM user_sc WHERE act_id=' + req.body.id).then(function (count) {
+            sd_der.data.sdfff_d = count[0].sc_num
+            mysql.query('SELECT COUNT(*) AS sc_num  FROM user_dz WHERE act_id=' + req.body.id).then(function (count) {
+                sd_der.data.sdfff_c = count[0].sc_num
+                res.json(sd_der)
+            })
+        })
+
     }).catch(function (err) {
         sd_der.code = "-1"
         sd_der.msg = "查询失败"
@@ -425,6 +664,11 @@ function tjcx(text, req, res, call) {
     if (req.body.id) {
         sd_ddf.id = req.body.id
     }
+    if(req.body.title){
+        sd_ddf.title=['LIKE', '%'+req.body.title+'%']
+    }
+
+
 
     mysql.table(text).where(sd_ddf).order('id DESC').page(id_d, 15).countSelect().then(function (data) {
         sd_der.code = 0

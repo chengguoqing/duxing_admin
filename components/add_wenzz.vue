@@ -42,11 +42,16 @@
                    
   </el-form-item>
              
+<el-form-item class="sdf_e4ert" label="详情">
+   <div contenteditable="true" class="sd_kj_drttd br" ref="fuwebner"></div>
+    
+  </el-form-item>   
             
-            
+<!--
             <el-form-item class="sdf_e4ert" label="详情">
    <fuwenben @gethtml="gethtml" :content="form.xq_text"></fuwenben>
   </el-form-item>
+-->
             
             
             
@@ -125,6 +130,8 @@
                 })
             },
             tijiao() {
+                var sd_ddrrt=this.$refs.fuwebner.innerText
+                console.log(sd_ddrrt);
                 if (this.$route.query.type == 1) {
                     this.form.userImg_fa = this.$store.state.auth.user_imageUrl
                     this.form.userNmae_fa = this.$store.state.auth.user_nicheng
@@ -137,10 +144,13 @@
                     this.$message.error('请输入作者名！');
                     return
                 }
-                if (!this.form.xq_text) {
+                if (!sd_ddrrt ){
                     this.$message.error('请输入详情！');
                     return
                 }
+                 this.form.xq_text=sd_ddrrt
+      
+                
                 let th = this
                 this.form.add_time = new Date().getTime()
                 this.form.biaoqian_text = this.value5.join(",")
@@ -159,6 +169,7 @@
                     id: this.$route.query.id
                 }, function(data) {
                     th.form = data.data
+                    th.$refs.fuwebner.innerText=data.data.xq_text
                     th.value5 = data.data.biaoqian_text.split(",")
                     th.value6 = data.data.fenlei
 
@@ -187,5 +198,10 @@
     .sd_jh_deert {
         width: 750px;
     }
-
+    .sd_kj_drttd{
+        height: 300px;
+        overflow: auto;
+        background: #fff;
+        padding: 10px
+    }
 </style>
