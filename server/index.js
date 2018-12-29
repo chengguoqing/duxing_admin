@@ -3,6 +3,8 @@ const consola = require('consola')
 var bodyParser = require('body-parser');
 var new_index = require('./new_index');
 var ouyan = require('./ouyan');
+var gzh = require('./gzh');
+
 const {
     Nuxt,
     Builder
@@ -68,6 +70,7 @@ config.dev = !(process.env.NODE_ENV === 'production')
 
 //app.use('/new/', new_index);
 app.use('/ouyan_api/', ouyan);
+app.use('/gzh/', gzh);
 
 
 async function start() {

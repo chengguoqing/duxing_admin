@@ -8,14 +8,16 @@ var md5 = require('md5');
 var request = require('request');
 var xml2js = require('xml2js');
 var appid = 'wxf8b0c920900b2663',
-    secret = 'ccf8c624ec6613843ca3087371cea5b9',
+    secret = '67f5bf2b92880b69b36390e5caaeada3',
     ticketUrl = "https://api.weixin.qq.com/cgi-bin/token",
     jsapi_ticket = "http://api.weixin.qq.com/cgi-bin/ticket/getticket",
     cache_duration = 1000 * 60 * 60 * 24, //缓存时长为24小时
+    cache_duration_er = 1000 * 60 * 60 * 168, //缓存时长为24小时
     shkey = "EBMscpCKkn2znrfsMMCrweBGTCGDDrpR"
 router.get('/test_w', function (req, res, next) {
     var qiurl = ticketUrl + `?grant_type=client_credential&appid=${appid}&secret=${secret}`,
         xsd_sd = req.query.sd_us
+    console.log(qiurl);
     res.header("Access-Control-Allow-Origin", "*"); //跨域
     if (cache.get('ticket')) {
         var sd_drtsae = kh_sd(cache.get('ticket'), xsd_sd)
@@ -24,6 +26,7 @@ router.get('/test_w', function (req, res, next) {
     } else {
         request(qiurl, function (error, resp, json) {
             var ticketMap = JSON.parse(json);
+            console.log(JSON.stringify(ticketMap));
             var jsapi = jsapi_ticket + "?type=jsapi&access_token=" + ticketMap.access_token
             request(jsapi, function (error, resp, jsoner) {
                 var token_oe = JSON.parse(jsoner)
@@ -44,9 +47,17 @@ router.get('/zhifu', function (req, res, next) { //支付
     var code = req.query.code
     var url_sd = "https://api.weixin.qq.com/sns/oauth2/access_token" + `?appid=${appid}&secret=${secret}&code=${code}&grant_type=authorization_code`
     request(url_sd, function (error, resp, open_id) {
-        var open_z_id=JSON.parse(open_id)
-        var openid =  open_z_id.openid
+        var open_z_id = JSON.parse(open_id)
+        var openid = open_z_id.openid
 
+        if (openid) {
+            cache.put(code, openid, cache_duration_er);
+        } else {
+           openid= cache.get(code);
+        }
+
+
+        console.log(JSON.stringify(open_z_id) + "22222222222222222");
         var sd_sdf = {},
             timeStamp = String(new Date().getTime());
         sd_sdf.appid = appid
@@ -54,7 +65,8 @@ router.get('/zhifu', function (req, res, next) { //支付
         sd_sdf.nonce_str = comm.randomString()
         sd_sdf.body = "独行工匠工作室"
         sd_sdf.out_trade_no = new Date().getTime()
-        sd_sdf.total_fee = req.query.jiner * 100
+        var sd_dffg = parseFloat(req.query.jiner)
+        sd_sdf.total_fee = sd_dffg * 100
         sd_sdf.spbill_create_ip = "119.29.187.203"
         sd_sdf.notify_url = "http://www.duxinggj.com/phone/dx"
         sd_sdf.trade_type = "JSAPI"
@@ -74,11 +86,11 @@ router.get('/zhifu', function (req, res, next) { //支付
         console.log(stringSignTemp)
         var ssd_srr = res
         var sd_sr_ser = comm.buildXML(sd_sdf)
-           console.log(sd_sr_ser)
+        console.log(sd_sr_ser)
         request({
             url: "https://api.mch.weixin.qq.com/pay/unifiedorder",
             method: 'POST',
-            body:  comm.buildXML(sd_sdf)
+            body: comm.buildXML(sd_sdf)
         }, function (err, response, body) {
             xml2js.parseString(body, {
                 explicitArray: false
