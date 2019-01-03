@@ -42,16 +42,18 @@
                    
   </el-form-item>
              
+<!--
 <el-form-item class="sdf_e4ert" label="详情">
    <div contenteditable="true" class="sd_kj_drttd br" ref="fuwebner"></div>
     
   </el-form-item>   
+-->
             
-<!--
+
             <el-form-item class="sdf_e4ert" label="详情">
    <fuwenben @gethtml="gethtml" :content="form.xq_text"></fuwenben>
   </el-form-item>
--->
+
             
             
             
