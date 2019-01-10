@@ -42,18 +42,26 @@
                    
   </el-form-item>
              
+
 <!--
-<el-form-item class="sdf_e4ert" label="详情">
+<el-form-item class="sdf_e4ert" label="详情url">
    <div contenteditable="true" class="sd_kj_drttd br" ref="fuwebner"></div>
     
   </el-form-item>   
 -->
+
             
 
+<!--
             <el-form-item class="sdf_e4ert" label="详情">
    <fuwenben @gethtml="gethtml" :content="form.xq_text"></fuwenben>
   </el-form-item>
+-->
 
+            
+                    <el-form-item label="详情url">
+    <el-input v-model="form.xq_text"></el-input>
+  </el-form-item>
             
             
             
@@ -119,8 +127,8 @@
         },
         methods: {
             gethtml(html) {
-                console.log(html);
-                this.form.xq_text = html
+                //                console.log(html);
+                //                this.form.xq_text = html
             },
             up_img(data) {
                 this.form.fengmian = data
@@ -132,8 +140,17 @@
                 })
             },
             tijiao() {
-                var sd_ddrrt=this.$refs.fuwebner.innerText
-                console.log(sd_ddrrt);
+
+
+
+                //                try{
+                //                   sd_ddrrt = sd_ddrrt.replace(/\<img/gi, '<img data-src="222" ')
+                //                }catch(e){
+                //                    
+                //                }
+                //               console.log(sd_ddrrt);
+
+
                 if (this.$route.query.type == 1) {
                     this.form.userImg_fa = this.$store.state.auth.user_imageUrl
                     this.form.userNmae_fa = this.$store.state.auth.user_nicheng
@@ -146,13 +163,24 @@
                     this.$message.error('请输入作者名！');
                     return
                 }
-                if (!sd_ddrrt ){
-                    this.$message.error('请输入详情！');
+
+                if (!this.form.xq_text) {
+                    this.$message.error('请输入详情地址！');
                     return
                 }
-                 this.form.xq_text=sd_ddrrt
-      
-                
+
+
+                var strRegex = '(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]';
+
+                var re = new RegExp(strRegex);
+
+                if (!re.test(this.form.xq_text)) {
+                    this.$message.error("请输入正确的url地址");
+                    return;
+                }
+
+
+
                 let th = this
                 this.form.add_time = new Date().getTime()
                 this.form.biaoqian_text = this.value5.join(",")
@@ -171,7 +199,8 @@
                     id: this.$route.query.id
                 }, function(data) {
                     th.form = data.data
-                    th.$refs.fuwebner.innerText=data.data.xq_text
+                    //                    th.$refs.fuwebner.innerText=data.data.xq_text
+                     th.form.xq_text= data.data.xq_text_er
                     th.value5 = data.data.biaoqian_text.split(",")
                     th.value6 = data.data.fenlei
 
@@ -182,6 +211,7 @@
 
             if (this.$route.query.id) {
                 this.getdata()
+               
             }
             this.form.type = this.$route.query.type
 
@@ -200,10 +230,12 @@
     .sd_jh_deert {
         width: 750px;
     }
-    .sd_kj_drttd{
+
+    .sd_kj_drttd {
         height: 300px;
         overflow: auto;
         background: #fff;
         padding: 10px
     }
+
 </style>

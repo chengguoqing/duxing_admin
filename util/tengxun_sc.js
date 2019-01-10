@@ -18,19 +18,32 @@ exports.test_up = function (name_e, call_back) {
     });
 
     var name_w = "public/uploads/" + name_e
-
-console.log(name_w);
     cos.sliceUploadFile({
         Bucket: 'duxinggj-2018-1251133427',
         Region: 'ap-guangzhou',
         Key: name_e,
         FilePath: './' + name_w
     }, function (err, data) {
-       call_back("https://" + data.Location);
+        call_back("https://" + data.Location);
+    });
+}
+
+
+exports.test_up_etr = function (name_e, call_back) {
+    var cos = new COS({
+        SecretId: secretId,
+        SecretKey: secretKey,
     });
 
-
-
+    var name_w = "public/uploads/" + name_e
+    cos.sliceUploadFile({
+        Bucket: 'duxinggj-2018-1251133427',
+        Region: 'ap-guangzhou',
+        Key: "ceshi_df.jpg",
+        FilePath: name_e
+    }, function (err, data) {
+        call_back("https://" + data.Location);
+    });
 }
 
 

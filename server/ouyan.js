@@ -4,8 +4,12 @@ var router = express.Router();
 var comm = require('./comm');
 var Mysql = require('node-mysql-promise');
 var tengxun_sc = require('../util/tengxun_sc');
-
+var request = require('request');
+var cheerio = require('cheerio')
 var sender = require('./SmsSender');
+var iconv = require('iconv-lite');
+
+
 sender.config.sdkappid = 1400046691;
 sender.config.appkey = '69e8f1574cc92cb690bfa63a8d39a05c';
 
@@ -20,8 +24,128 @@ var mysql = Mysql.createConnection({
 //验证码集合
 let yacode = new Set(),
     shuju_d = []
-let ur_l = "https://duxinggj.com"
+var ur_l = "https://duxinggj.com/"
+//var ur_l = "http://127.0.0.1:3000/"
 
+var headers = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.65 Safari/537.36'
+}
+
+function getsuy(url_sd, cll) {
+    request({
+        url: url_sd,
+        encoding: null,
+        headers: headers
+    }, function (error, resp, json) {
+        var json = iconv.decode(json, 'utf-8')
+
+        $ = cheerio.load(json, {
+            decodeEntities: false
+        });
+        let sd_ddf = []
+        $("#js_content").find("img").map(function () {
+            var sd_dfg = $(this)
+            comm.xiazai($(sd_dfg).attr("data-src"), '.' + $(sd_dfg).attr("data-type"), function (dater) {
+                $(sd_dfg).removeAttr("data-src")
+                $(sd_dfg).attr("src", ur_l + dater)
+                $(sd_dfg).css({'max-width':'100%;'})
+            })
+        })
+        $("#js_content *").map(function () {
+            try {
+                var sd_dert = $(this).attr("style"),
+                    sd_dert_b = sd_dert.replace(/\"/g, "");
+                     sd_dert_b = sd_dert_b.replace(/\'/g, "");
+                $(this).attr("style", sd_dert_b)
+//                $(this).removeAttr("style")
+            } catch (e) {
+
+            }
+
+        })
+        cll($("#js_content").html())
+    })
+}
+router.get("/ouy_deerrt", function (req, res, next) {
+    getsuy('https://mp.weixin.qq.com/s/4niEJe_1xpCC7PrFM6epXw', function (data) {
+        res.json(data)
+    })
+
+})
+router.post("/test_imgde", function (req, res, next) {
+    //     comm.xiazai(req.query.url_e)
+    var imgReg = /<img.*?(?:>|\/>)/gi;
+    var srcReg = /src=[\'\"]?([^\'\"]*)[\'\"]?/i;
+    
+    var arr = req.body.url_e.match(imgReg);
+    let sd_ddfg = []
+    for (var i = 0; i < arr.length; i++) {
+        var src = arr[i].match(srcReg)[1];
+        let sd_dsdf = {}
+        sd_dsdf.ysrc = src
+        sd_dsdf.nsrc = ""
+        sd_ddfg.push(sd_dsdf)
+    }
+
+    sd_ddfg.map((a, b) => {
+        comm.xiazai(a.ysrc, function (dater) {
+            a.nsrc = ur_l + dater
+        })
+    })
+    let sd_ddffg = req.body.url_e
+    sd_ddfg.map(a => {
+        let ysrc = a.ysrc,
+            nsrc = a.nsrc
+
+        sd_ddffg = sd_ddffg.replace(ysrc, nsrc)
+    })
+    sd_ddffg = excludeSpecial(sd_ddffg)
+
+    res.json(sd_ddffg)
+})
+
+function cz_dffg(url_e) {
+    var imgReg = /<img.*?(?:>|\/>)/gi;
+    var srcReg = /src=[\'\"]?([^\'\"]*)[\'\"]?/i;
+    var arr = url_e.match(imgReg);
+    let sd_ddfg = []
+    let sd_ddffg = url_e
+    try {
+        if (arr) {
+            for (var i = 0; i < arr.length; i++) {
+                var src = arr[0].match(srcReg)[1];
+                let sd_dsdf = {}
+                sd_dsdf.ysrc = src
+                sd_dsdf.nsrc = ""
+                sd_ddfg.push(sd_dsdf)
+            }
+
+            sd_ddfg.map((a, b) => {
+                comm.xiazai(a.ysrc, function (dater) {
+                    a.nsrc = ur_l + dater
+                })
+            })
+            sd_ddffg = url_e
+            sd_ddfg.map(a => {
+                let ysrc = a.ysrc,
+                    nsrc = a.nsrc
+
+                sd_ddffg = sd_ddffg.replace(ysrc, nsrc)
+            })
+            sd_ddffg = excludeSpecial(sd_ddffg)
+            //    sd_ddffg = excludeSpecial(sd_ddffg)
+        }
+    } catch (e) {
+
+    }
+    return sd_ddffg
+}
+
+var excludeSpecial = function (s) {
+    // 去掉转义字符  
+    s = s.replace(/[\'\"]/g, '"');
+    return s;
+};
 router.post("/get_user_msg", function (req, res, next) {
     let sd_der = {
         code: 0,
@@ -332,18 +456,18 @@ router.post('/get_user_id', function (req, res, next) {
     let sd_der = {
         code: 0,
         msg: "",
-        data:{}
+        data: {}
     }
-  
-        mysql.query('SELECT * FROM user_info WHERE id=' + req.body.id).then(function (data) {
+
+    mysql.query('SELECT * FROM user_info WHERE id=' + req.body.id).then(function (data) {
         sd_der.data = data
         mysql.query('SELECT COUNT(*) AS sc_num FROM user_sc WHERE user_id=' + req.body.id).then(function (count) {
             sd_der.sc_num = count[0].sc_num
-            mysql.query('SELECT COUNT(*) AS msg_n FROM user_msg WHERE user_id='+ req.body.id +' GROUP BY act_id').then(function (count) {
+            mysql.query('SELECT COUNT(*) AS msg_n FROM user_msg WHERE user_id=' + req.body.id + ' GROUP BY act_id').then(function (count) {
                 sd_der.msg_n = count[0].msg_n
                 mysql.query('SELECT COUNT(*) AS act_num FROM user_act WHERE user_id=' + req.body.id).then(function (count) {
                     sd_der.act_num = count[0].act_num
-                      res.json(sd_der)
+                    res.json(sd_der)
                 })
 
             })
@@ -351,9 +475,9 @@ router.post('/get_user_id', function (req, res, next) {
         })
 
     })
-    
-    
-    
+
+
+
 })
 
 
@@ -530,6 +654,9 @@ router.post("/add_xq", function (req, res, next) {
         code: 0,
         msg: ""
     }
+
+    //    req.body.xq_text = cz_dffg(req.body.xq_text)
+
     mysql.table('xiangqing').add(req.body).then(function (data) {
         sd_der.code = 0
         sd_der.msg = "添加成功"
@@ -550,14 +677,28 @@ router.post("/get_xq", function (req, res, next) {
     mysql.table('xiangqing').where(req.body).select().then(function (data) {
         sd_der.code = 0
         sd_der.msg = "查询成功"
-        sd_der.data = data[0]
-        mysql.query('SELECT COUNT(*) AS sc_num  FROM user_sc WHERE act_id=' + req.body.id).then(function (count) {
-            sd_der.data.sdfff_d = count[0].sc_num
-            mysql.query('SELECT COUNT(*) AS sc_num  FROM user_dz WHERE act_id=' + req.body.id).then(function (count) {
-                sd_der.data.sdfff_c = count[0].sc_num
-                res.json(sd_der)
+        sd_der.data = data[0],
+        data[0].xq_text_er=data[0].xq_text
+
+        getsuy(data[0].xq_text, function (data_kjd) {
+           data_kjd= data_kjd.replace(/section/g,'div')
+                                  
+            data[0].xq_text = data_kjd
+            mysql.query('SELECT COUNT(*) AS sc_num  FROM user_sc WHERE act_id=' + req.body.id).then(function (count) {
+                sd_der.data.sdfff_d = count[0].sc_num
+                mysql.query('SELECT COUNT(*) AS sc_num  FROM user_dz WHERE act_id=' + req.body.id).then(function (count) {
+                    sd_der.data.sdfff_c = count[0].sc_num
+                    res.json(sd_der)
+                })
             })
+
+
+
         })
+
+
+
+
 
     }).catch(function (err) {
         sd_der.code = "-1"
@@ -575,6 +716,7 @@ router.post("/del_xq", function (req, res, next) {
 })
 //修改详情
 router.post("/xgai_xq", function (req, res, next) {
+    //    req.body.xq_text = cz_dffg(req.body.xq_text)
     xiugai('xiangqing', req, res)
 })
 
@@ -664,8 +806,8 @@ function tjcx(text, req, res, call) {
     if (req.body.id) {
         sd_ddf.id = req.body.id
     }
-    if(req.body.title){
-        sd_ddf.title=['LIKE', '%'+req.body.title+'%']
+    if (req.body.title) {
+        sd_ddf.title = ['LIKE', '%' + req.body.title + '%']
     }
 
 

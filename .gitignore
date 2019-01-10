@@ -70,7 +70,8 @@ typings/
 
 # Nuxt generate
 dist
-
+.public
+.public/uploads
 # vuepress build output
 .vuepress/dist
 
@@ -79,3 +80,5 @@ dist
 
 # IDE
 .idea
+
+

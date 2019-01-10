@@ -3,6 +3,17 @@ var fs = require('fs');
 var formidable = require('formidable');
 var request = require('request');
 var xml2js = require('xml2js');
+
+var http = require('http');
+var url = require('url');
+
+exports.xiazai = function (url, type, call) {
+    let sd_ddf = 'up_d' + randomString(32) + type
+    request(url).pipe(fs.createWriteStream('./public/uploads/' + sd_ddf));
+    call("uploads/" + sd_ddf)
+}
+
+
 exports.up_img = function (req, res, suc) {
     var form = new formidable.IncomingForm(); //创建上传表单
     form.encoding = 'utf-8'; //设置编辑
@@ -51,6 +62,17 @@ exports.randomString = function (len) {
     return pwd;
 }
 
+function randomString(len) {
+    len = len || 32;
+    var $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678'; /****默认去掉了容易混淆的字符oOLl,9gq,Vv,Uu,I1****/
+    var maxPos = $chars.length;
+    var pwd = '';
+    for (i = 0; i < len; i++) {
+        pwd += $chars.charAt(Math.floor(Math.random() * maxPos));
+    }
+    return pwd;
+}
+
 //随机数
 exports.randomnum = function (len) {
     len = len || 6;
@@ -65,25 +87,25 @@ exports.randomnum = function (len) {
 
 
 //对象转地址
-exports.parseParam = function (data,ty) {
+exports.parseParam = function (data, ty) {
     var _result = [];
     for (var key in data) {
         var value = data[key];
         if (value.constructor == Array) {
             value.forEach(function (_value) {
-                _result.push(key + '="' + value+'"');
+                _result.push(key + '="' + value + '"');
             });
         } else {
-            _result.push(key + '="' + value+'"');
+            _result.push(key + '="' + value + '"');
         }
     }
 
-   if(ty==1){
-       
-       return _result.join(' and '); 
-    }else{
-          
-         return _result.join('&');
+    if (ty == 1) {
+
+        return _result.join(' and ');
+    } else {
+
+        return _result.join('&');
     }
 };
 exports.assign_dsdf = function (jsonbject1, jsonbject2) {
